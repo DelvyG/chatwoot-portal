@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= pageTitle ? pageTitle + ' – ' : '' %><%= t.title %></title>
+  <link rel="icon" type="image/png" href="/brand-assets/logo_thumbnail.png?v=3">
+  <link rel="stylesheet" href="<%= BASE %>/public/style.css">
+</head>
+<body>
+<% if (user) { %>
+<nav class="navbar">
+  <a href="<%= BASE %>/dashboard" class="nav-brand">
+    <img src="/brand-assets/logo.png?v=2" alt="Towa" onerror="this.style.display='none'">
+    <span><%= t.title %></span>
+  </a>
+  <div class="nav-right">
+    <form action="<%= BASE %>/lang" method="POST">
+      <input type="hidden" name="lang" value="<%= lang === 'en' ? 'es' : 'en' %>">
+      <button type="submit" class="btn-ghost btn-sm"><%= t.switchLang %></button>
+    </form>
+    <span class="nav-email"><%= user.email %></span>
+    <a href="<%= BASE %>/logout" class="btn-ghost btn-sm"><%= t.logout %></a>
+  </div>
+</nav>
+<% } %>
+<main class="<%= user ? 'with-nav' : '' %>">

@@ -1,0 +1,35 @@
+<%- include('_header', { pageTitle: null }) %>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <img src="/brand-assets/logo.png?v=2" alt="Towa" onerror="this.style.display='none'">
+    </div>
+    <h1 class="auth-title"><%= t.title %></h1>
+    <p class="auth-subtitle"><%= t.loginSubtitle %></p>
+
+    <% if (message) { %>
+      <div class="alert alert-success"><%= message %></div>
+    <% } %>
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form action="<%= BASE %>/auth/request" method="POST" class="auth-form">
+      <div class="form-group">
+        <label for="email"><%= t.email %></label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full"><%= t.sendLink %></button>
+    </form>
+
+    <div class="auth-lang">
+      <form action="<%= BASE %>/lang" method="POST">
+        <input type="hidden" name="lang" value="<%= lang === 'en' ? 'es' : 'en' %>">
+        <button type="submit" class="btn-link-subtle"><%= t.switchLang %></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('_footer') %>

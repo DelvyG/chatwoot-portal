@@ -1,0 +1,62 @@
+<%- include('_header', { pageTitle: t.dashboard }) %>
+
+<div class="container">
+  <div class="page-header">
+    <h1><%= t.dashboard %></h1>
+    <a href="<%= BASE %>/tickets/new" class="btn btn-primary"><%= t.newTicket %></a>
+  </div>
+
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+
+  <% if (conversations.length === 0) { %>
+    <div class="empty-state">
+      <div class="empty-icon">🎫</div>
+      <p class="empty-title"><%= t.noTickets %></p>
+      <p class="empty-hint"><%= t.noTicketsHint %></p>
+      <a href="<%= BASE %>/tickets/new" class="btn btn-primary"><%= t.newTicket %></a>
+    </div>
+  <% } else { %>
+    <div class="tickets-table-wrap">
+      <table class="tickets-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th><%= t.subject %></th>
+            <th><%= t.status %></th>
+            <th><%= t.lastUpdate %></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% conversations.forEach(conv => { %>
+            <%
+              const statusMap = { open: t.open, resolved: t.resolved, pending: t.pending, snoozed: t.snoozed };
+              const statusClass = { open: 'status-open', resolved: 'status-resolved', pending: 'status-pending', snoozed: 'status-snoozed' };
+              const subject = conv.additional_attributes?.mail_subject || conv.meta?.channel || ('Ticket #' + conv.id);
+              const updatedAt = new Date(conv.updated_at * 1000).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { year:'numeric', month:'short', day:'numeric' });
+            %>
+            <tr>
+              <td class="ticket-id">#<%= conv.id %></td>
+              <td class="ticket-subject">
+                <a href="<%= BASE %>/tickets/<%= conv.id %>"><%= subject %></a>
+              </td>
+              <td>
+                <span class="badge <%= statusClass[conv.status] || 'status-open' %>">
+                  <%= statusMap[conv.status] || conv.status %>
+                </span>
+              </td>
+              <td class="ticket-date"><%= updatedAt %></td>
+              <td>
+                <a href="<%= BASE %>/tickets/<%= conv.id %>" class="btn-ghost btn-sm">View →</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+
+<%- include('_footer') %>

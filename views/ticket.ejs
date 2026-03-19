@@ -1,0 +1,64 @@
+<%
+  const subject = conversation.additional_attributes?.mail_subject || ('Ticket #' + conversation.id);
+  const statusMap = { open: t.open, resolved: t.resolved, pending: t.pending, snoozed: t.snoozed };
+  const statusClass = { open: 'status-open', resolved: 'status-resolved', pending: 'status-pending', snoozed: 'status-snoozed' };
+  const createdAt = new Date(conversation.created_at * 1000).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { year:'numeric', month:'long', day:'numeric' });
+  const isResolved = conversation.status === 'resolved';
+%>
+<%- include('_header', { pageTitle: t.ticketDetail + ' #' + conversation.id }) %>
+
+<div class="container container-narrow">
+  <a href="<%= BASE %>/dashboard" class="back-link"><%= t.back %></a>
+
+  <div class="ticket-header">
+    <div class="ticket-header-left">
+      <h1 class="ticket-title"><%= subject %></h1>
+      <div class="ticket-meta">
+        <span class="badge <%= statusClass[conversation.status] || 'status-open' %>">
+          <%= statusMap[conversation.status] || conversation.status %>
+        </span>
+        <span class="meta-id"><%= t.ticketId %><%= conversation.id %></span>
+        <span class="meta-date"><%= t.createdAt %>: <%= createdAt %></span>
+      </div>
+    </div>
+    <% if (!isResolved) { %>
+    <form action="<%= BASE %>/tickets/<%= conversation.id %>/cancel" method="POST"
+          onsubmit="return confirm('<%= t.cancelConfirm %>')">
+      <button type="submit" class="btn btn-danger"><%= t.cancelTicket %></button>
+    </form>
+    <% } %>
+  </div>
+
+  <div class="messages">
+    <% messages.forEach(msg => { %>
+      <%
+        const isCustomer = msg.message_type === 0;
+        const isAgent = msg.message_type === 1;
+        if (!isCustomer && !isAgent) return;
+        const senderName = isCustomer ? t.you : (msg.sender?.name || t.agent);
+        const msgDate = new Date(msg.created_at * 1000).toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      %>
+      <div class="message <%= isCustomer ? 'message-customer' : 'message-agent' %>">
+        <div class="message-header">
+          <span class="message-sender"><%= senderName %></span>
+          <span class="message-time"><%= msgDate %></span>
+        </div>
+        <div class="message-body"><%- (msg.content || '').replace(/\n/g, '<br>') %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <% if (!isResolved) { %>
+  <div class="reply-box">
+    <form action="<%= BASE %>/tickets/<%= conversation.id %>/reply" method="POST">
+      <div class="form-group">
+        <label><%= t.replyPlaceholder %></label>
+        <textarea name="message" rows="4" placeholder="<%= t.replyPlaceholder %>" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary"><%= t.send %></button>
+    </form>
+  </div>
+  <% } %>
+</div>
+
+<%- include('_footer') %>

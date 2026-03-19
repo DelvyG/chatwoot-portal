@@ -1,0 +1,212 @@
+require('dotenv').config();
+const express = require('express');
+const session = require('express-session');
+const path = require('path');
+const crypto = require('crypto');
+const chatwoot = require('./chatwoot');
+const mailer = require('./mailer');
+const i18n = require('./i18n');
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+const BASE = '/portal';
+
+// Token store: { token -> { email, expires } }
+const tokenStore = new Map();
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of tokenStore) {
+    if (v.expires < now) tokenStore.delete(k);
+  }
+}, 60 * 1000);
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(`${BASE}/public`, express.static(path.join(__dirname, 'public')));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+  resave: false,
+  saveUninitialized: false,
+  rolling: true, // reset timer on each request (inactivity-based)
+  cookie: { secure: false, maxAge: 30 * 60 * 1000 } // 30 min inactivity
+}));
+
+// i18n + locals middleware
+app.use((req, res, next) => {
+  const lang = req.session.lang || 'en';
+  res.locals.t = i18n[lang] || i18n.en;
+  res.locals.lang = lang;
+  res.locals.BASE = BASE;
+  res.locals.user = req.session.user || null;
+  next();
+});
+
+function requireAuth(req, res, next) {
+  if (!req.session.user) return res.redirect(`${BASE}/`);
+  next();
+}
+
+// ── Login ──────────────────────────────────────────────────────────────
+app.get(`${BASE}/`, (req, res) => {
+  if (req.session.user) return res.redirect(`${BASE}/dashboard`);
+  res.render('login', { error: null, message: null });
+});
+
+app.post(`${BASE}/auth/request`, async (req, res) => {
+  const { email } = req.body;
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.render('login', { error: res.locals.t.invalidEmail, message: null });
+  }
+
+  // Only allow registered contacts
+  try {
+    const contact = await chatwoot.findContactByEmail(email);
+    if (!contact) {
+      console.log(`[portal] Access denied for unknown email: ${email}`);
+      return res.render('login', { error: res.locals.t.notRegistered, message: null });
+    }
+  } catch (err) {
+    console.error('[portal] Contact lookup error:', err.message);
+    return res.render('login', { error: res.locals.t.emailError, message: null });
+  }
+
+  const token = crypto.randomBytes(32).toString('hex');
+  tokenStore.set(token, { email, expires: Date.now() + 15 * 60 * 1000 });
+
+  const link = `${process.env.PORTAL_URL || 'https://support.towa.agency'}${BASE}/auth/verify?token=${token}`;
+
+  try {
+    await mailer.sendMagicLink(email, link, res.locals.t);
+    console.log(`[portal] Magic link sent to ${email}`);
+    res.render('login', { error: null, message: res.locals.t.magicLinkSent });
+  } catch (err) {
+    console.error('[portal] Email error:', err.message);
+    res.render('login', { error: res.locals.t.emailError, message: null });
+  }
+});
+
+app.get(`${BASE}/auth/verify`, (req, res) => {
+  const { token } = req.query;
+  const record = tokenStore.get(token);
+  if (!record || record.expires < Date.now()) {
+    tokenStore.delete(token);
+    return res.render('login', { error: res.locals.t.invalidToken, message: null });
+  }
+  tokenStore.delete(token);
+  req.session.user = { email: record.email };
+  res.redirect(`${BASE}/dashboard`);
+});
+
+// ── Dashboard ──────────────────────────────────────────────────────────
+app.get(`${BASE}/dashboard`, requireAuth, async (req, res) => {
+  try {
+    const contact = await chatwoot.findContactByEmail(req.session.user.email);
+    let conversations = [];
+    if (contact) {
+      conversations = await chatwoot.getConversations(contact.id);
+      req.session.user.contactId = contact.id;
+      req.session.user.name = contact.name;
+    }
+    res.render('dashboard', { conversations, error: null });
+  } catch (err) {
+    console.error('Dashboard error:', err.message);
+    res.render('dashboard', { conversations: [], error: res.locals.t.loadError });
+  }
+});
+
+// ── Create ticket ──────────────────────────────────────────────────────
+app.get(`${BASE}/tickets/new`, requireAuth, (req, res) => {
+  res.render('create', { error: null });
+});
+
+app.post(`${BASE}/tickets`, requireAuth, async (req, res) => {
+  const { subject, message } = req.body;
+  if (!subject || !message) {
+    return res.render('create', { error: res.locals.t.fillAllFields });
+  }
+  try {
+    let contact = await chatwoot.findContactByEmail(req.session.user.email);
+    if (!contact) {
+      const name = req.session.user.name || req.session.user.email.split('@')[0];
+      contact = await chatwoot.createContact(name, req.session.user.email);
+    }
+    const conversation = await chatwoot.createConversation(contact.id, subject);
+    await chatwoot.sendMessage(conversation.id, message);
+    res.redirect(`${BASE}/tickets/${conversation.id}`);
+  } catch (err) {
+    console.error('Create ticket error:', err.message, err.response?.data);
+    res.render('create', { error: res.locals.t.createError });
+  }
+});
+
+// ── Ticket detail ──────────────────────────────────────────────────────
+app.get(`${BASE}/tickets/:id`, requireAuth, async (req, res) => {
+  try {
+    const conversation = await chatwoot.getConversation(req.params.id);
+    const contact = await chatwoot.findContactByEmail(req.session.user.email);
+    if (!contact || conversation.meta?.sender?.id !== contact.id) {
+      return res.redirect(`${BASE}/dashboard`);
+    }
+    const messages = await chatwoot.getMessages(req.params.id);
+    res.render('ticket', { conversation, messages, error: null });
+  } catch (err) {
+    console.error('Ticket error:', err.message);
+    res.redirect(`${BASE}/dashboard`);
+  }
+});
+
+// ── Reply ──────────────────────────────────────────────────────────────
+app.post(`${BASE}/tickets/:id/reply`, requireAuth, async (req, res) => {
+  const { message } = req.body;
+  if (!message || !message.trim()) {
+    return res.redirect(`${BASE}/tickets/${req.params.id}`);
+  }
+  try {
+    const conversation = await chatwoot.getConversation(req.params.id);
+    const contact = await chatwoot.findContactByEmail(req.session.user.email);
+    if (!contact || conversation.meta?.sender?.id !== contact.id) {
+      return res.redirect(`${BASE}/dashboard`);
+    }
+    await chatwoot.sendMessage(req.params.id, message);
+    res.redirect(`${BASE}/tickets/${req.params.id}`);
+  } catch (err) {
+    console.error('Reply error:', err.message);
+    res.redirect(`${BASE}/tickets/${req.params.id}`);
+  }
+});
+
+// ── Cancel ticket ──────────────────────────────────────────────────────
+app.post(`${BASE}/tickets/:id/cancel`, requireAuth, async (req, res) => {
+  try {
+    const conversation = await chatwoot.getConversation(req.params.id);
+    const contact = await chatwoot.findContactByEmail(req.session.user.email);
+    if (!contact || conversation.meta?.sender?.id !== contact.id) {
+      return res.redirect(`${BASE}/dashboard`);
+    }
+    await chatwoot.resolveConversation(req.params.id);
+    res.redirect(`${BASE}/dashboard`);
+  } catch (err) {
+    console.error('Cancel error:', err.message);
+    res.redirect(`${BASE}/dashboard`);
+  }
+});
+
+// ── Language switch ────────────────────────────────────────────────────
+app.post(`${BASE}/lang`, (req, res) => {
+  const { lang } = req.body;
+  if (['en', 'es'].includes(lang)) req.session.lang = lang;
+  const ref = req.get('Referer') || `${BASE}/dashboard`;
+  res.redirect(ref);
+});
+
+// ── Logout ─────────────────────────────────────────────────────────────
+app.get(`${BASE}/logout`, (req, res) => {
+  req.session.destroy();
+  res.redirect(`${BASE}/`);
+});
+
+app.listen(PORT, () => console.log(`Portal running on port ${PORT}`));
