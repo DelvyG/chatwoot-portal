@@ -182,7 +182,7 @@ app.get(`${BASE}/tickets/:id`, requireAuth, async (req, res) => {
 });
 
 // ── Reply ──────────────────────────────────────────────────────────────
-app.post(`${BASE}/tickets/:id/reply`, requireAuth, upload.array('attachments', 5), async (req, res) => {
+app.post(`${BASE}/tickets/:id/reply`, requireAuth, upload.array('attachments', 6), async (req, res) => {
   const { message } = req.body;
   const files = req.files || [];
   if (!message?.trim() && files.length === 0) {

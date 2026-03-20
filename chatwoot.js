@@ -58,16 +58,28 @@ async function sendMessage(conversationId, content, files = []) {
     return res.data;
   }
 
-  // Multipart when attachments present
+  // Multipart when attachments present — use direct axios call so the
+  // multipart Content-Type boundary and api_access_token don't conflict
   const form = new FormData();
   form.append('content', content || '');
   form.append('message_type', 'incoming');
   form.append('private', 'false');
   files.forEach(f => {
-    form.append('attachments[]', f.buffer, { filename: f.originalname, contentType: f.mimetype });
+    form.append('attachments[]', f.buffer, {
+      filename: f.originalname,
+      contentType: f.mimetype,
+      knownLength: f.size
+    });
   });
-  const res = await api.post(`/conversations/${conversationId}/messages`, form, {
-    headers: form.getHeaders()
+
+  const url = `${api.defaults.baseURL}/conversations/${conversationId}/messages`;
+  const res = await axios.post(url, form, {
+    headers: {
+      ...form.getHeaders(),
+      api_access_token: process.env.CHATWOOT_API_TOKEN
+    },
+    maxBodyLength: Infinity,
+    maxContentLength: Infinity
   });
   return res.data;
 }
