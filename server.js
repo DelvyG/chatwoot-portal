@@ -117,6 +117,10 @@ app.get(`${BASE}/auth/verify`, (req, res) => {
   }
   tokenStore.delete(token);
   req.session.user = { email: record.email };
+  const redirect = req.query.redirect;
+  if (redirect && redirect.startsWith(`${BASE}/`)) {
+    return res.redirect(redirect);
+  }
   res.redirect(`${BASE}/dashboard`);
 });
 
@@ -232,10 +236,12 @@ app.post(`${BASE}/webhooks/chatwoot`, async (req, res) => {
 
   const payload = req.body;
 
+  console.log(`[webhook] event=${payload.event} message_type=${payload.message_type} private=${payload.private} inbox_id=${payload.conversation?.inbox_id} email=${payload.conversation?.meta?.sender?.email}`);
+
   // Only care about new messages
   if (payload.event !== 'message_created') return;
-  // Only outgoing messages from agents (type 1), skip private notes
-  if (payload.message_type !== 1) return;
+  // Only outgoing messages from agents (type 1 or "outgoing"), skip private notes
+  if (payload.message_type !== 1 && payload.message_type !== 'outgoing') return;
   if (payload.private === true) return;
   // Only notify for our Customer Portal inbox
   const inboxId = parseInt(process.env.CHATWOOT_INBOX_ID || 2);
@@ -250,7 +256,9 @@ app.post(`${BASE}/webhooks/chatwoot`, async (req, res) => {
                          || `Ticket #${conversationId}`;
   const agentName      = payload.sender?.name || 'Support Agent';
   const content        = payload.content || '';
-  const link           = `${process.env.PORTAL_URL || 'https://support.towa.agency'}${BASE}/tickets/${conversationId}`;
+  const autoToken      = crypto.randomBytes(32).toString('hex');
+  tokenStore.set(autoToken, { email, expires: Date.now() + 24 * 60 * 60 * 1000 }); // 24h
+  const link           = `${process.env.PORTAL_URL || 'https://support.towa.agency'}${BASE}/auth/verify?token=${autoToken}&redirect=${BASE}/tickets/${conversationId}`;
 
   try {
     await mailer.sendReplyNotification(email, { agentName, content, subject, link, ticketId });
