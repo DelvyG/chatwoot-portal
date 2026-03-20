@@ -393,51 +393,47 @@ main.with-nav { padding-top: 0; }
 
 /* ── Priority selector ─────────────────────────────────────────────── */
 .priority-selector {
-  display: flex;
-  gap: 8px;
+  display: inline-flex;
   flex-wrap: wrap;
+  gap: 8px;
 }
 
-.priority-opt {
-  display: flex;
+.prio-btn {
+  display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 16px;
+  padding: 8px 18px;
   border-radius: 20px;
   border: 2px solid var(--border);
   background: var(--white);
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
+  font-family: inherit;
   color: var(--text-muted);
-  transition: border-color .15s, background .15s, color .15s;
+  transition: border-color .15s, background .15s, color .15s, transform .1s;
   user-select: none;
+  white-space: nowrap;
 }
-.priority-opt input[type="radio"] { display: none; }
+.prio-btn:hover { transform: translateY(-1px); }
 
-.priority-pip {
-  width: 10px;
-  height: 10px;
+.prio-dot {
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-/* Colors per level */
-.priority-opt-low    .priority-pip { background: #94a3b8; }
-.priority-opt-medium .priority-pip { background: #3b82f6; }
-.priority-opt-high   .priority-pip { background: #f97316; }
-.priority-opt-urgent .priority-pip { background: #ef4444; }
+.prio-btn-low    .prio-dot { background: #94a3b8; }
+.prio-btn-medium .prio-dot { background: #3b82f6; }
+.prio-btn-high   .prio-dot { background: #f97316; }
+.prio-btn-urgent .prio-dot { background: #ef4444; }
 
-/* Selected state */
-.priority-opt:has(input:checked) { color: var(--text); }
-.priority-opt-low:has(input:checked)    { border-color: #94a3b8; background: #f1f5f9; color: #475569; }
-.priority-opt-medium:has(input:checked) { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
-.priority-opt-high:has(input:checked)   { border-color: #f97316; background: #fff7ed; color: #c2410c; }
-.priority-opt-urgent:has(input:checked) { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
-
-/* Hover */
-.priority-opt:hover { border-color: #94a3b8; }
-.priority-opt-urgent:hover { border-color: #ef4444; }
+/* Active / selected state */
+.prio-btn-low.prio-btn-active    { border-color: #94a3b8; background: #f1f5f9; color: #475569; }
+.prio-btn-medium.prio-btn-active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+.prio-btn-high.prio-btn-active   { border-color: #f97316; background: #fff7ed; color: #c2410c; }
+.prio-btn-urgent.prio-btn-active { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
 
 /* ── Priority badges ────────────────────────────────────────────────── */
 .prio-badge  { font-size: 11px; padding: 2px 8px; }
@@ -446,7 +442,7 @@ main.with-nav { padding-top: 0; }
 .prio-high   { background: #fff7ed; color: #c2410c; }
 .prio-urgent { background: #fef2f2; color: #991b1b; }
 
-.badge-stack { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.badge-stack { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 
 /* ── File upload zone ──────────────────────────────────────────────── */
 .file-zone {

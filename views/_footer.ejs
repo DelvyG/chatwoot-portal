@@ -131,6 +131,23 @@
 
   document.querySelectorAll('.file-zone').forEach(initFileZone);
 })();
+
+// Priority selector
+(function () {
+  var selector = document.getElementById('prioritySelector');
+  var hidden   = document.getElementById('priorityInput');
+  if (!selector || !hidden) return;
+
+  selector.querySelectorAll('.prio-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      selector.querySelectorAll('.prio-btn').forEach(function (b) {
+        b.classList.remove('prio-btn-active');
+      });
+      btn.classList.add('prio-btn-active');
+      hidden.value = btn.dataset.value;
+    });
+  });
+})();
 </script>
 </body>
 </html>
