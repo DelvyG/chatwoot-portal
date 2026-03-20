@@ -375,9 +375,9 @@ main.with-nav { padding-top: 0; }
 }
 
 .thread-box-body {
-  padding: 24px 20px 20px;
+  padding: 20px;
   background: #f8fafc;
-  max-height: 520px;
+  max-height: 380px;
   overflow-y: auto;
   scroll-behavior: smooth;
 }
