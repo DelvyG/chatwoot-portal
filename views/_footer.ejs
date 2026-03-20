@@ -132,6 +132,52 @@
   document.querySelectorAll('.file-zone').forEach(initFileZone);
 })();
 
+// Lightbox
+(function () {
+  var overlay = document.getElementById('lb-overlay');
+  if (!overlay) return;
+  var lbImg    = document.getElementById('lb-img');
+  var lbIframe = document.getElementById('lb-iframe');
+
+  function openLb(url, type) {
+    lbImg.style.display    = 'none';
+    lbIframe.style.display = 'none';
+    lbImg.src = '';
+    lbIframe.src = '';
+    if (type === 'image') {
+      lbImg.src = url;
+      lbImg.style.display = 'block';
+    } else {
+      lbIframe.src = url;
+      lbIframe.style.display = 'block';
+    }
+    overlay.classList.add('lb-active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLb() {
+    overlay.classList.remove('lb-active');
+    lbImg.src = '';
+    lbIframe.src = '';
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.lb-trigger').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      openLb(el.href, el.dataset.lbType);
+    });
+  });
+
+  overlay.querySelector('.lb-close').addEventListener('click', closeLb);
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) closeLb();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeLb();
+  });
+})();
+
 // Priority selector
 (function () {
   var selector = document.getElementById('prioritySelector');

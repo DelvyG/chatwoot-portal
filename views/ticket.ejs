@@ -58,8 +58,13 @@
         <div class="message-attachments">
           <% msg.attachments.forEach(att => { %>
             <% if (att.file_type === 'image') { %>
-              <a href="<%= att.data_url %>" target="_blank" class="attachment-image-link">
+              <a href="<%= att.data_url %>" class="attachment-image-link lb-trigger" data-lb-type="image">
                 <img src="<%= att.data_url %>" alt="attachment" class="attachment-image">
+              </a>
+            <% } else if (att.file_type === 'document' || (att.data_url && att.data_url.match(/\.pdf(\?|$)/i))) { %>
+              <a href="<%= att.data_url %>" class="attachment-file lb-trigger" data-lb-type="pdf">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32"/></svg>
+                <%= att.data_url.split('/').pop().split('?')[0] %>
               </a>
             <% } else { %>
               <a href="<%= att.data_url %>" target="_blank" class="attachment-file">
@@ -100,6 +105,15 @@
     </form>
   </div>
   <% } %>
+</div>
+
+<!-- Lightbox modal -->
+<div id="lb-overlay" class="lb-overlay" role="dialog" aria-modal="true">
+  <button class="lb-close" aria-label="Close">&times;</button>
+  <div class="lb-content" id="lb-content">
+    <img id="lb-img" src="" alt="preview" class="lb-img">
+    <iframe id="lb-iframe" src="" class="lb-iframe" allowfullscreen></iframe>
+  </div>
 </div>
 
 <%- include('_footer') %>
