@@ -38,11 +38,12 @@ async function getMessages(conversationId) {
     .sort((a, b) => a.created_at - b.created_at);
 }
 
-async function createConversation(contactId, subject) {
+async function createConversation(contactId, subject, priority = 'none') {
   const res = await api.post('/conversations', {
     inbox_id: parseInt(process.env.CHATWOOT_INBOX_ID || 1),
     contact_id: contactId,
-    additional_attributes: { mail_subject: subject }
+    additional_attributes: { mail_subject: subject },
+    priority
   });
   return res.data;
 }

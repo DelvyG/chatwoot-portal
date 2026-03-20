@@ -49,7 +49,13 @@ module.exports = {
     switchLang: 'Español',
     attachmentsLabel: 'Attachments (optional)',
     addFiles: 'Add files',
-    attachmentHint: 'Images, PDF, Word, Excel · max 10 MB each · up to 6 files'
+    attachmentHint: 'Images, PDF, Word, Excel · max 10 MB each · up to 6 files',
+    priorityLabel: 'Priority',
+    priorityLow: 'Low',
+    priorityMedium: 'Medium',
+    priorityHigh: 'High',
+    priorityUrgent: 'Urgent',
+    priority: 'Priority'
   },
   es: {
     title: 'Portal de Soporte',
@@ -101,6 +107,12 @@ module.exports = {
     switchLang: 'English',
     attachmentsLabel: 'Adjuntos (opcional)',
     addFiles: 'Agregar archivos',
-    attachmentHint: 'Imágenes, PDF, Word, Excel · máx. 10 MB c/u · hasta 6 archivos'
+    attachmentHint: 'Imágenes, PDF, Word, Excel · máx. 10 MB c/u · hasta 6 archivos',
+    priorityLabel: 'Prioridad',
+    priorityLow: 'Bajo',
+    priorityMedium: 'Medio',
+    priorityHigh: 'Alto',
+    priorityUrgent: 'Urgente',
+    priority: 'Prioridad'
   }
 };

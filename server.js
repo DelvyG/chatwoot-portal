@@ -142,8 +142,11 @@ app.get(`${BASE}/tickets/new`, requireAuth, (req, res) => {
   res.render('create', { error: null });
 });
 
-app.post(`${BASE}/tickets`, requireAuth, upload.array('attachments', 5), async (req, res) => {
+const VALID_PRIORITIES = ['none', 'low', 'medium', 'high', 'urgent'];
+
+app.post(`${BASE}/tickets`, requireAuth, upload.array('attachments', 6), async (req, res) => {
   const { subject, message } = req.body;
+  const priority = VALID_PRIORITIES.includes(req.body.priority) ? req.body.priority : 'none';
   if (!subject || !message) {
     return res.render('create', { error: res.locals.t.fillAllFields });
   }
@@ -153,7 +156,7 @@ app.post(`${BASE}/tickets`, requireAuth, upload.array('attachments', 5), async (
       const name = req.session.user.name || req.session.user.email.split('@')[0];
       contact = await chatwoot.createContact(name, req.session.user.email);
     }
-    const conversation = await chatwoot.createConversation(contact.id, subject);
+    const conversation = await chatwoot.createConversation(contact.id, subject, priority);
     await chatwoot.sendMessage(conversation.id, message, req.files || []);
     res.redirect(`${BASE}/tickets/${conversation.id}`);
   } catch (err) {

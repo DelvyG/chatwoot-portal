@@ -2,8 +2,11 @@
   const subject = conversation.additional_attributes?.mail_subject || ('Ticket #' + conversation.id);
   const statusMap = { open: t.open, resolved: t.resolved, pending: t.pending, snoozed: t.snoozed };
   const statusClass = { open: 'status-open', resolved: 'status-resolved', pending: 'status-pending', snoozed: 'status-snoozed' };
+  const prioMap = { low: t.priorityLow, medium: t.priorityMedium, high: t.priorityHigh, urgent: t.priorityUrgent };
+  const prioClass = { low: 'prio-low', medium: 'prio-medium', high: 'prio-high', urgent: 'prio-urgent' };
   const createdAt = new Date(conversation.created_at * 1000).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { year:'numeric', month:'long', day:'numeric' });
   const isResolved = conversation.status === 'resolved';
+  const prio = conversation.priority && conversation.priority !== 'none' ? conversation.priority : null;
 %>
 <%- include('_header', { pageTitle: t.ticketDetail + ' #' + conversation.id }) %>
 
@@ -17,6 +20,11 @@
         <span class="badge <%= statusClass[conversation.status] || 'status-open' %>">
           <%= statusMap[conversation.status] || conversation.status %>
         </span>
+        <% if (prio) { %>
+        <span class="badge prio-badge <%= prioClass[prio] %>">
+          <%= prioMap[prio] %>
+        </span>
+        <% } %>
         <span class="meta-id"><%= t.ticketId %><%= conversation.id %></span>
         <span class="meta-date"><%= t.createdAt %>: <%= createdAt %></span>
       </div>

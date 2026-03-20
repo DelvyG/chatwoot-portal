@@ -34,8 +34,11 @@
             <%
               const statusMap = { open: t.open, resolved: t.resolved, pending: t.pending, snoozed: t.snoozed };
               const statusClass = { open: 'status-open', resolved: 'status-resolved', pending: 'status-pending', snoozed: 'status-snoozed' };
+              const prioMap = { low: t.priorityLow, medium: t.priorityMedium, high: t.priorityHigh, urgent: t.priorityUrgent };
+              const prioClass = { low: 'prio-low', medium: 'prio-medium', high: 'prio-high', urgent: 'prio-urgent' };
               const subject = conv.additional_attributes?.mail_subject || conv.meta?.channel || ('Ticket #' + conv.id);
               const updatedAt = new Date(conv.updated_at * 1000).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { year:'numeric', month:'short', day:'numeric' });
+              const prio = conv.priority && conv.priority !== 'none' ? conv.priority : null;
             %>
             <tr>
               <td class="ticket-id">#<%= conv.id %></td>
@@ -43,9 +46,16 @@
                 <a href="<%= BASE %>/tickets/<%= conv.id %>"><%= subject %></a>
               </td>
               <td>
-                <span class="badge <%= statusClass[conv.status] || 'status-open' %>">
-                  <%= statusMap[conv.status] || conv.status %>
-                </span>
+                <div class="badge-stack">
+                  <span class="badge <%= statusClass[conv.status] || 'status-open' %>">
+                    <%= statusMap[conv.status] || conv.status %>
+                  </span>
+                  <% if (prio) { %>
+                  <span class="badge prio-badge <%= prioClass[prio] %>">
+                    <%= prioMap[prio] %>
+                  </span>
+                  <% } %>
+                </div>
               </td>
               <td class="ticket-date"><%= updatedAt %></td>
               <td>

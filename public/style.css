@@ -391,6 +391,63 @@ main.with-nav { padding-top: 0; }
   box-shadow: var(--shadow);
 }
 
+/* ── Priority selector ─────────────────────────────────────────────── */
+.priority-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.priority-opt {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px solid var(--border);
+  background: var(--white);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: border-color .15s, background .15s, color .15s;
+  user-select: none;
+}
+.priority-opt input[type="radio"] { display: none; }
+
+.priority-pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Colors per level */
+.priority-opt-low    .priority-pip { background: #94a3b8; }
+.priority-opt-medium .priority-pip { background: #3b82f6; }
+.priority-opt-high   .priority-pip { background: #f97316; }
+.priority-opt-urgent .priority-pip { background: #ef4444; }
+
+/* Selected state */
+.priority-opt:has(input:checked) { color: var(--text); }
+.priority-opt-low:has(input:checked)    { border-color: #94a3b8; background: #f1f5f9; color: #475569; }
+.priority-opt-medium:has(input:checked) { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+.priority-opt-high:has(input:checked)   { border-color: #f97316; background: #fff7ed; color: #c2410c; }
+.priority-opt-urgent:has(input:checked) { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
+
+/* Hover */
+.priority-opt:hover { border-color: #94a3b8; }
+.priority-opt-urgent:hover { border-color: #ef4444; }
+
+/* ── Priority badges ────────────────────────────────────────────────── */
+.prio-badge  { font-size: 11px; padding: 2px 8px; }
+.prio-low    { background: #f1f5f9; color: #475569; }
+.prio-medium { background: #eff6ff; color: #1d4ed8; }
+.prio-high   { background: #fff7ed; color: #c2410c; }
+.prio-urgent { background: #fef2f2; color: #991b1b; }
+
+.badge-stack { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+
 /* ── File upload zone ──────────────────────────────────────────────── */
 .file-zone {
   border: 2px dashed var(--border);
