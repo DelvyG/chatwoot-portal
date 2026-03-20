@@ -1,43 +1,135 @@
 </main>
 <script>
 (function () {
-  function initFileDrop(dropEl) {
-    if (!dropEl) return;
-    var input = dropEl.querySelector('.file-input');
-    var listEl = dropEl.querySelector('.file-list');
-    if (!input || !listEl) return;
+  var MAX_FILES = 6;
+  var ALLOWED = [
+    'image/jpeg','image/png','image/gif','image/webp',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain'
+  ];
 
-    function renderFiles() {
-      listEl.innerHTML = '';
-      Array.from(input.files).forEach(function (f) {
-        var chip = document.createElement('span');
-        chip.className = 'file-chip';
-        chip.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32"/></svg>';
-        chip.appendChild(document.createTextNode(f.name));
-        listEl.appendChild(chip);
-      });
-    }
-
-    input.addEventListener('change', renderFiles);
-
-    dropEl.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      dropEl.classList.add('dragover');
-    });
-    dropEl.addEventListener('dragleave', function () {
-      dropEl.classList.remove('dragover');
-    });
-    dropEl.addEventListener('drop', function (e) {
-      e.preventDefault();
-      dropEl.classList.remove('dragover');
-      var dt = new DataTransfer();
-      Array.from(e.dataTransfer.files).forEach(function (f) { dt.items.add(f); });
-      input.files = dt.files;
-      renderFiles();
-    });
+  function getExt(name) {
+    var parts = name.split('.');
+    return parts.length > 1 ? parts.pop().toUpperCase().slice(0, 5) : 'FILE';
   }
 
-  document.querySelectorAll('.file-drop').forEach(initFileDrop);
+  function initFileZone(zone) {
+    var previewsEl = zone.querySelector('.file-previews');
+    var footer     = zone.querySelector('.file-zone-footer');
+    var addLabel   = zone.querySelector('.file-add-label');
+    var input      = zone.querySelector('.file-input-hidden');
+    var hintEl     = zone.querySelector('.file-zone-hint');
+    var hintBase   = hintEl ? hintEl.textContent : '';
+    if (!previewsEl || !input) return;
+
+    var files = []; // accumulated File objects
+
+    function syncInput() {
+      var dt = new DataTransfer();
+      files.forEach(function (f) { dt.items.add(f); });
+      input.files = dt.files;
+    }
+
+    function render() {
+      // Revoke old object URLs to avoid memory leaks
+      previewsEl.querySelectorAll('img').forEach(function (img) {
+        URL.revokeObjectURL(img.src);
+      });
+      previewsEl.innerHTML = '';
+
+      files.forEach(function (f, i) {
+        var item = document.createElement('div');
+        item.className = 'file-preview-item';
+
+        if (f.type.startsWith('image/')) {
+          var img = document.createElement('img');
+          img.src = URL.createObjectURL(f);
+          img.className = 'file-preview-thumb';
+          img.alt = f.name;
+          item.appendChild(img);
+        } else {
+          var iconBox = document.createElement('div');
+          iconBox.className = 'file-preview-icon';
+          iconBox.innerHTML =
+            '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>' +
+            '</svg>' +
+            '<span class="file-ext-badge">' + getExt(f.name) + '</span>';
+          item.appendChild(iconBox);
+        }
+
+        var nameEl = document.createElement('p');
+        nameEl.className = 'file-preview-name';
+        nameEl.title = f.name;
+        nameEl.textContent = f.name;
+        item.appendChild(nameEl);
+
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'file-remove-btn';
+        btn.title = 'Remove';
+        btn.innerHTML = '&times;';
+        btn.addEventListener('click', (function (idx) {
+          return function () {
+            files.splice(idx, 1);
+            syncInput();
+            render();
+          };
+        })(i));
+        item.appendChild(btn);
+
+        previewsEl.appendChild(item);
+      });
+
+      // Show/hide add button
+      var atLimit = files.length >= MAX_FILES;
+      if (addLabel) addLabel.style.display = atLimit ? 'none' : '';
+      if (hintEl) {
+        var rem = MAX_FILES - files.length;
+        hintEl.textContent = atLimit
+          ? hintBase
+          : hintBase + (files.length > 0 ? ' · ' + rem + ' remaining' : '');
+      }
+    }
+
+    function addFiles(newFiles) {
+      Array.from(newFiles).forEach(function (f) {
+        if (files.length >= MAX_FILES) return;
+        if (!ALLOWED.includes(f.type)) return;
+        // Skip duplicates
+        var dup = files.some(function (e) { return e.name === f.name && e.size === f.size; });
+        if (!dup) files.push(f);
+      });
+      syncInput();
+      render();
+      // Reset so same file can be re-added after removal
+      input.value = '';
+    }
+
+    input.addEventListener('change', function () { addFiles(input.files); });
+
+    // Drag and drop
+    zone.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      zone.classList.add('dragover');
+    });
+    zone.addEventListener('dragleave', function (e) {
+      if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover');
+    });
+    zone.addEventListener('drop', function (e) {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      addFiles(e.dataTransfer.files);
+    });
+
+    render();
+  }
+
+  document.querySelectorAll('.file-zone').forEach(initFileZone);
 })();
 </script>
 </body>

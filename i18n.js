@@ -48,7 +48,8 @@ module.exports = {
     createdAt: 'Created',
     switchLang: 'Español',
     attachmentsLabel: 'Attachments (optional)',
-    attachmentHint: 'Click or drag files here — images, PDF, Word, Excel (max 10 MB each, up to 5 files)'
+    addFiles: 'Add files',
+    attachmentHint: 'Images, PDF, Word, Excel · max 10 MB each · up to 6 files'
   },
   es: {
     title: 'Portal de Soporte',
@@ -99,6 +100,7 @@ module.exports = {
     createdAt: 'Creado',
     switchLang: 'English',
     attachmentsLabel: 'Adjuntos (opcional)',
-    attachmentHint: 'Haz clic o arrastra archivos aquí — imágenes, PDF, Word, Excel (máx. 10 MB cada uno, hasta 5 archivos)'
+    addFiles: 'Agregar archivos',
+    attachmentHint: 'Imágenes, PDF, Word, Excel · máx. 10 MB c/u · hasta 6 archivos'
   }
 };

@@ -391,61 +391,134 @@ main.with-nav { padding-top: 0; }
   box-shadow: var(--shadow);
 }
 
-/* ── File upload ───────────────────────────────────────────────────── */
-.file-drop {
-  position: relative;
+/* ── File upload zone ──────────────────────────────────────────────── */
+.file-zone {
   border: 2px dashed var(--border);
   border-radius: var(--radius);
-  padding: 20px 16px;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
+  padding: 12px;
   background: var(--bg);
+  transition: border-color .15s, background .15s;
 }
-.file-drop:hover,
-.file-drop.dragover { border-color: var(--blue); background: #eff8ff; }
+.file-zone.dragover { border-color: var(--blue); background: #eff8ff; }
 
-.file-drop-compact { padding: 12px 16px; }
+.file-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.file-previews:empty { margin-bottom: 0; }
 
-.file-input {
+/* Each preview card */
+.file-preview-item {
+  position: relative;
+  width: 88px;
+  flex-shrink: 0;
+}
+
+/* Image thumbnail */
+.file-preview-thumb {
+  width: 88px;
+  height: 88px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+/* Generic file icon card */
+.file-preview-icon {
+  width: 88px;
+  height: 88px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--text-muted);
+}
+.file-preview-icon svg { color: var(--blue); }
+.file-ext-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--white);
+  background: var(--blue);
+  border-radius: 3px;
+  padding: 1px 5px;
+  text-transform: uppercase;
+}
+
+/* Filename below the card */
+.file-preview-name {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 88px;
+  text-align: center;
+}
+
+/* Remove button */
+.file-remove-btn {
   position: absolute;
-  inset: 0;
-  opacity: 0;
+  top: -7px;
+  right: -7px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--red);
+  color: var(--white);
+  border: 2px solid var(--white);
   cursor: pointer;
-  width: 100%;
-  height: 100%;
-}
-
-.file-drop-text {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  color: var(--text-muted);
   font-size: 13px;
-  pointer-events: none;
+  line-height: 1;
+  padding: 0;
+  box-shadow: var(--shadow);
 }
-.file-drop-text svg { flex-shrink: 0; color: var(--blue); }
+.file-remove-btn:hover { background: var(--red-dark); }
 
-.file-list {
-  margin-top: 10px;
+/* Footer row: add button + hint */
+.file-zone-footer {
   display: flex;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
-  gap: 6px;
-  pointer-events: none;
 }
-.file-chip {
+
+.file-add-label {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 3px 10px 3px 8px;
-  font-size: 12px;
-  color: var(--text);
+  cursor: pointer;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--blue);
+  background: transparent;
+  transition: background .15s;
+  white-space: nowrap;
 }
-.file-chip svg { color: var(--blue); }
+.file-add-label:hover { background: #eff8ff; }
+
+.file-input-hidden {
+  display: none;
+}
+
+.file-zone-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
 
 /* ── Message attachments ────────────────────────────────────────────── */
 .message-attachments {
