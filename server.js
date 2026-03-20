@@ -51,7 +51,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   rolling: true, // reset timer on each request (inactivity-based)
-  cookie: { secure: false, maxAge: 30 * 60 * 1000 } // 30 min inactivity
+  cookie: { secure: false, maxAge: 4 * 60 * 60 * 1000 } // 4 hours inactivity
 }));
 
 // i18n + locals middleware
@@ -224,6 +224,40 @@ app.post(`${BASE}/lang`, (req, res) => {
   if (['en', 'es'].includes(lang)) req.session.lang = lang;
   const ref = req.get('Referer') || `${BASE}/dashboard`;
   res.redirect(ref);
+});
+
+// ── Chatwoot webhook (agent reply notifications) ────────────────────────
+app.post(`${BASE}/webhooks/chatwoot`, async (req, res) => {
+  res.sendStatus(200); // always ack quickly
+
+  const payload = req.body;
+
+  // Only care about new messages
+  if (payload.event !== 'message_created') return;
+  // Only outgoing messages from agents (type 1), skip private notes
+  if (payload.message_type !== 1) return;
+  if (payload.private === true) return;
+  // Only notify for our Customer Portal inbox
+  const inboxId = parseInt(process.env.CHATWOOT_INBOX_ID || 2);
+  if (payload.conversation?.inbox_id !== inboxId) return;
+
+  const email = payload.conversation?.meta?.sender?.email;
+  if (!email) return;
+
+  const conversationId = payload.conversation?.id;
+  const ticketId       = conversationId;
+  const subject        = payload.conversation?.additional_attributes?.mail_subject
+                         || `Ticket #${conversationId}`;
+  const agentName      = payload.sender?.name || 'Support Agent';
+  const content        = payload.content || '';
+  const link           = `${process.env.PORTAL_URL || 'https://support.towa.agency'}${BASE}/tickets/${conversationId}`;
+
+  try {
+    await mailer.sendReplyNotification(email, { agentName, content, subject, link, ticketId });
+    console.log(`[portal] Reply notification → ${email} (ticket #${ticketId})`);
+  } catch (err) {
+    console.error('[portal] Notification error:', err.message);
+  }
 });
 
 // ── Logout ─────────────────────────────────────────────────────────────
