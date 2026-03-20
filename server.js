@@ -3,9 +3,28 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const crypto = require('crypto');
+const multer = require('multer');
 const chatwoot = require('./chatwoot');
 const mailer = require('./mailer');
 const i18n = require('./i18n');
+
+const ALLOWED_MIMES = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/plain'
+];
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024, files: 5 },
+  fileFilter(req, file, cb) {
+    cb(null, ALLOWED_MIMES.includes(file.mimetype));
+  }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -123,7 +142,7 @@ app.get(`${BASE}/tickets/new`, requireAuth, (req, res) => {
   res.render('create', { error: null });
 });
 
-app.post(`${BASE}/tickets`, requireAuth, async (req, res) => {
+app.post(`${BASE}/tickets`, requireAuth, upload.array('attachments', 5), async (req, res) => {
   const { subject, message } = req.body;
   if (!subject || !message) {
     return res.render('create', { error: res.locals.t.fillAllFields });
@@ -135,7 +154,7 @@ app.post(`${BASE}/tickets`, requireAuth, async (req, res) => {
       contact = await chatwoot.createContact(name, req.session.user.email);
     }
     const conversation = await chatwoot.createConversation(contact.id, subject);
-    await chatwoot.sendMessage(conversation.id, message);
+    await chatwoot.sendMessage(conversation.id, message, req.files || []);
     res.redirect(`${BASE}/tickets/${conversation.id}`);
   } catch (err) {
     console.error('Create ticket error:', err.message, err.response?.data);
@@ -160,9 +179,10 @@ app.get(`${BASE}/tickets/:id`, requireAuth, async (req, res) => {
 });
 
 // ── Reply ──────────────────────────────────────────────────────────────
-app.post(`${BASE}/tickets/:id/reply`, requireAuth, async (req, res) => {
+app.post(`${BASE}/tickets/:id/reply`, requireAuth, upload.array('attachments', 5), async (req, res) => {
   const { message } = req.body;
-  if (!message || !message.trim()) {
+  const files = req.files || [];
+  if (!message?.trim() && files.length === 0) {
     return res.redirect(`${BASE}/tickets/${req.params.id}`);
   }
   try {
@@ -171,7 +191,7 @@ app.post(`${BASE}/tickets/:id/reply`, requireAuth, async (req, res) => {
     if (!contact || conversation.meta?.sender?.id !== contact.id) {
       return res.redirect(`${BASE}/dashboard`);
     }
-    await chatwoot.sendMessage(req.params.id, message);
+    await chatwoot.sendMessage(req.params.id, message || '', files);
     res.redirect(`${BASE}/tickets/${req.params.id}`);
   } catch (err) {
     console.error('Reply error:', err.message);

@@ -10,7 +10,7 @@
   <% } %>
 
   <div class="card">
-    <form action="<%= BASE %>/tickets" method="POST">
+    <form action="<%= BASE %>/tickets" method="POST" enctype="multipart/form-data">
       <div class="form-group">
         <label for="subject"><%= t.subjectLabel %></label>
         <input type="text" id="subject" name="subject"
@@ -20,6 +20,19 @@
         <label for="message"><%= t.messageLabel %></label>
         <textarea id="message" name="message" rows="6"
                   placeholder="<%= t.messagePlaceholder %>" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="attachments"><%= t.attachmentsLabel %></label>
+        <div class="file-drop" id="fileDrop">
+          <input type="file" id="attachments" name="attachments" multiple
+                 accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                 class="file-input">
+          <div class="file-drop-text">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"/></svg>
+            <span><%= t.attachmentHint %></span>
+          </div>
+          <div class="file-list" id="fileList"></div>
+        </div>
       </div>
       <div class="form-actions">
         <a href="<%= BASE %>/dashboard" class="btn btn-ghost"><%= t.back %></a>

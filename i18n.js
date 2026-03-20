@@ -46,7 +46,9 @@ module.exports = {
     agent: 'Support Agent',
     ticketId: 'Ticket #',
     createdAt: 'Created',
-    switchLang: 'Español'
+    switchLang: 'Español',
+    attachmentsLabel: 'Attachments (optional)',
+    attachmentHint: 'Click or drag files here — images, PDF, Word, Excel (max 10 MB each, up to 5 files)'
   },
   es: {
     title: 'Portal de Soporte',
@@ -95,6 +97,8 @@ module.exports = {
     agent: 'Agente de Soporte',
     ticketId: 'Ticket #',
     createdAt: 'Creado',
-    switchLang: 'English'
+    switchLang: 'English',
+    attachmentsLabel: 'Adjuntos (opcional)',
+    attachmentHint: 'Haz clic o arrastra archivos aquí — imágenes, PDF, Word, Excel (máx. 10 MB cada uno, hasta 5 archivos)'
   }
 };

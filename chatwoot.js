@@ -1,4 +1,5 @@
 const axios = require('axios');
+const FormData = require('form-data');
 
 const api = axios.create({
   baseURL: `http://localhost:3000/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID || 1}`,
@@ -46,11 +47,26 @@ async function createConversation(contactId, subject) {
   return res.data;
 }
 
-async function sendMessage(conversationId, content) {
-  const res = await api.post(`/conversations/${conversationId}/messages`, {
-    content,
-    message_type: 'incoming',
-    private: false
+async function sendMessage(conversationId, content, files = []) {
+  if (files.length === 0) {
+    const res = await api.post(`/conversations/${conversationId}/messages`, {
+      content,
+      message_type: 'incoming',
+      private: false
+    });
+    return res.data;
+  }
+
+  // Multipart when attachments present
+  const form = new FormData();
+  form.append('content', content || '');
+  form.append('message_type', 'incoming');
+  form.append('private', 'false');
+  files.forEach(f => {
+    form.append('attachments[]', f.buffer, { filename: f.originalname, contentType: f.mimetype });
+  });
+  const res = await api.post(`/conversations/${conversationId}/messages`, form, {
+    headers: form.getHeaders()
   });
   return res.data;
 }

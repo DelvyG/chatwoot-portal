@@ -1,3 +1,44 @@
 </main>
+<script>
+(function () {
+  function initFileDrop(dropEl) {
+    if (!dropEl) return;
+    var input = dropEl.querySelector('.file-input');
+    var listEl = dropEl.querySelector('.file-list');
+    if (!input || !listEl) return;
+
+    function renderFiles() {
+      listEl.innerHTML = '';
+      Array.from(input.files).forEach(function (f) {
+        var chip = document.createElement('span');
+        chip.className = 'file-chip';
+        chip.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32"/></svg>';
+        chip.appendChild(document.createTextNode(f.name));
+        listEl.appendChild(chip);
+      });
+    }
+
+    input.addEventListener('change', renderFiles);
+
+    dropEl.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      dropEl.classList.add('dragover');
+    });
+    dropEl.addEventListener('dragleave', function () {
+      dropEl.classList.remove('dragover');
+    });
+    dropEl.addEventListener('drop', function (e) {
+      e.preventDefault();
+      dropEl.classList.remove('dragover');
+      var dt = new DataTransfer();
+      Array.from(e.dataTransfer.files).forEach(function (f) { dt.items.add(f); });
+      input.files = dt.files;
+      renderFiles();
+    });
+  }
+
+  document.querySelectorAll('.file-drop').forEach(initFileDrop);
+})();
+</script>
 </body>
 </html>
