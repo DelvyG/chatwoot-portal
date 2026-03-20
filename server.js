@@ -147,7 +147,7 @@ const VALID_PRIORITIES = ['none', 'low', 'medium', 'high', 'urgent'];
 app.post(`${BASE}/tickets`, requireAuth, upload.array('attachments', 6), async (req, res) => {
   const { subject, message } = req.body;
   const priority = VALID_PRIORITIES.includes(req.body.priority) ? req.body.priority : 'none';
-  if (!subject || !message) {
+if (!subject || !message) {
     return res.render('create', { error: res.locals.t.fillAllFields });
   }
   try {

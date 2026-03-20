@@ -28,10 +28,14 @@
 
     var files = []; // accumulated File objects
 
-    function syncInput() {
-      var dt = new DataTransfer();
-      files.forEach(function (f) { dt.items.add(f); });
-      input.files = dt.files;
+    // Sync files array → input.files right before form submit
+    var parentForm = zone.closest('form');
+    if (parentForm) {
+      parentForm.addEventListener('submit', function () {
+        var dt = new DataTransfer();
+        files.forEach(function (f) { dt.items.add(f); });
+        input.files = dt.files;
+      });
     }
 
     function render() {
@@ -76,7 +80,6 @@
         btn.addEventListener('click', (function (idx) {
           return function () {
             files.splice(idx, 1);
-            syncInput();
             render();
           };
         })(i));
@@ -104,10 +107,7 @@
         var dup = files.some(function (e) { return e.name === f.name && e.size === f.size; });
         if (!dup) files.push(f);
       });
-      syncInput();
       render();
-      // Reset so same file can be re-added after removal
-      input.value = '';
     }
 
     input.addEventListener('change', function () { addFiles(input.files); });
