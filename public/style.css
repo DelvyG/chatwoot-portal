@@ -399,23 +399,33 @@ main.with-nav { padding-top: 0; }
 }
 
 .prio-btn {
-  display: inline-flex;
-  align-items: center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  display: inline-flex !important;
+  align-items: center !important;
   gap: 7px;
-  padding: 8px 18px;
-  border-radius: 20px;
-  border: 2px solid var(--border);
-  background: var(--white);
+  padding: 9px 20px !important;
+  border-radius: 24px !important;
+  border: 2px solid #e2e8f0 !important;
+  background: #ffffff !important;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: inherit;
-  color: var(--text-muted);
-  transition: border-color .15s, background .15s, color .15s, transform .1s;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  line-height: 1 !important;
+  color: #64748b !important;
+  transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
   user-select: none;
   white-space: nowrap;
+  text-decoration: none;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
 }
-.prio-btn:hover { transform: translateY(-1px); }
+.prio-btn:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,.10);
+  transform: translateY(-1px);
+}
 
 .prio-dot {
   width: 9px;
@@ -430,10 +440,10 @@ main.with-nav { padding-top: 0; }
 .prio-btn-urgent .prio-dot { background: #ef4444; }
 
 /* Active / selected state */
-.prio-btn-low.prio-btn-active    { border-color: #94a3b8; background: #f1f5f9; color: #475569; }
-.prio-btn-medium.prio-btn-active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
-.prio-btn-high.prio-btn-active   { border-color: #f97316; background: #fff7ed; color: #c2410c; }
-.prio-btn-urgent.prio-btn-active { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
+.prio-btn-low.prio-btn-active    { border-color: #94a3b8 !important; background: #f1f5f9 !important; color: #475569 !important; }
+.prio-btn-medium.prio-btn-active { border-color: #3b82f6 !important; background: #eff6ff !important; color: #1d4ed8 !important; }
+.prio-btn-high.prio-btn-active   { border-color: #f97316 !important; background: #fff7ed !important; color: #c2410c !important; }
+.prio-btn-urgent.prio-btn-active { border-color: #ef4444 !important; background: #fef2f2 !important; color: #991b1b !important; }
 
 /* ── Priority badges ────────────────────────────────────────────────── */
 .prio-badge  { font-size: 11px; padding: 2px 8px; }
