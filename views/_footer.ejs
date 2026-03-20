@@ -1,7 +1,71 @@
 </main>
+
+<div id="toast-container" aria-live="polite"></div>
+
 <script>
+// ── Toast ─────────────────────────────────────────────────────────────
+(function () {
+  var TOAST_MSGS = {
+    en: {
+      tooLarge:        'File too large',
+      tooLargeDetail:  'exceeds the 10 MB limit and was not added.',
+      badType:         'File type not allowed',
+      badTypeDetail:   'is not a supported format. Allowed: images, PDF, Word, Excel, TXT.',
+      limitReached:    'File limit reached',
+      limitDetail:     'You can attach up to 6 files per ticket.'
+    },
+    es: {
+      tooLarge:        'Archivo muy grande',
+      tooLargeDetail:  'supera el límite de 10 MB y no fue agregado.',
+      badType:         'Tipo de archivo no permitido',
+      badTypeDetail:   'no es un formato soportado. Permitidos: imágenes, PDF, Word, Excel, TXT.',
+      limitReached:    'Límite de archivos alcanzado',
+      limitDetail:     'Puedes adjuntar hasta 6 archivos por ticket.'
+    }
+  };
+
+  window._toastMsgs = function () {
+    var lang = (document.documentElement.lang || 'en').slice(0, 2);
+    return TOAST_MSGS[lang] || TOAST_MSGS.en;
+  };
+
+  window.showFileToast = function (title, message) {
+    var container = document.getElementById('toast-container');
+    var toast = document.createElement('div');
+    toast.className = 'toast toast-error';
+    toast.innerHTML =
+      '<div class="toast-icon">' +
+        '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">' +
+          '<circle cx="12" cy="12" r="10"/>' +
+          '<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01"/>' +
+        '</svg>' +
+      '</div>' +
+      '<div class="toast-body">' +
+        '<p class="toast-title">' + title + '</p>' +
+        '<p class="toast-message">' + message + '</p>' +
+      '</div>' +
+      '<button class="toast-close" aria-label="Close">&times;</button>' +
+      '<div class="toast-progress"></div>';
+
+    toast.querySelector('.toast-close').addEventListener('click', function () {
+      dismiss(toast);
+    });
+    container.appendChild(toast);
+    requestAnimationFrame(function () { toast.classList.add('toast-show'); });
+    toast._timer = setTimeout(function () { dismiss(toast); }, 5000);
+  };
+
+  function dismiss(toast) {
+    clearTimeout(toast._timer);
+    toast.classList.remove('toast-show');
+    toast.classList.add('toast-hide');
+    setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 350);
+  }
+})();
+
 (function () {
   var MAX_FILES = 6;
+  var MAX_SIZE  = 10 * 1024 * 1024; // 10 MB
   var ALLOWED = [
     'image/jpeg','image/png','image/gif','image/webp',
     'application/pdf',
@@ -100,10 +164,20 @@
     }
 
     function addFiles(newFiles) {
+      var m = window._toastMsgs();
       Array.from(newFiles).forEach(function (f) {
-        if (files.length >= MAX_FILES) return;
-        if (!ALLOWED.includes(f.type)) return;
-        // Skip duplicates
+        if (files.length >= MAX_FILES) {
+          window.showFileToast(m.limitReached, m.limitDetail);
+          return;
+        }
+        if (!ALLOWED.includes(f.type)) {
+          window.showFileToast(m.badType, '\u201c' + f.name + '\u201d ' + m.badTypeDetail);
+          return;
+        }
+        if (f.size > MAX_SIZE) {
+          window.showFileToast(m.tooLarge, '\u201c' + f.name + '\u201d ' + m.tooLargeDetail);
+          return;
+        }
         var dup = files.some(function (e) { return e.name === f.name && e.size === f.size; });
         if (!dup) files.push(f);
       });
