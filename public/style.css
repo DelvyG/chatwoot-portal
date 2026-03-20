@@ -377,6 +377,9 @@ main.with-nav { padding-top: 0; }
 .thread-box-body {
   padding: 24px 20px 20px;
   background: #f8fafc;
+  max-height: 520px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .thread-resolved-banner {

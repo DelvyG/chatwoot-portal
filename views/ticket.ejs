@@ -145,4 +145,9 @@
   </div>
 </div>
 
+<script>
+  // Scroll thread to bottom on load so latest message is visible
+  var body = document.querySelector('.thread-box-body');
+  if (body) body.scrollTop = body.scrollHeight;
+</script>
 <%- include('_footer') %>
