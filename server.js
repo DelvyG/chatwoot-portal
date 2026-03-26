@@ -108,8 +108,21 @@ app.post(`${BASE}/auth/request`, async (req, res) => {
   }
 });
 
+// GET: muestra página de confirmación — NO consume el token
+// (evita que Safe Links de Microsoft/Outlook invalide el token al pre-escanear la URL)
 app.get(`${BASE}/auth/verify`, (req, res) => {
-  const { token } = req.query;
+  const { token, redirect } = req.query;
+  const record = tokenStore.get(token);
+  if (!record || record.expires < Date.now()) {
+    tokenStore.delete(token);
+    return res.render('login', { error: res.locals.t.invalidToken, message: null });
+  }
+  res.render('confirm', { token, redirect: redirect || '' });
+});
+
+// POST: el usuario hace clic en el botón — AHÍ sí se consume el token y se crea la sesión
+app.post(`${BASE}/auth/verify`, (req, res) => {
+  const { token, redirect } = req.body;
   const record = tokenStore.get(token);
   if (!record || record.expires < Date.now()) {
     tokenStore.delete(token);
@@ -117,7 +130,6 @@ app.get(`${BASE}/auth/verify`, (req, res) => {
   }
   tokenStore.delete(token);
   req.session.user = { email: record.email };
-  const redirect = req.query.redirect;
   if (redirect && redirect.startsWith(`${BASE}/`)) {
     return res.redirect(redirect);
   }

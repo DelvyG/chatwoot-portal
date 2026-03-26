@@ -1,0 +1,19 @@
+<%- include('_header', { pageTitle: null }) %>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <img src="/brand-assets/logo.png?v=2" alt="Towa" onerror="this.style.display='none'">
+    </div>
+    <h1 class="auth-title"><%= t.title %></h1>
+    <p class="auth-subtitle"><%= t.confirmSubtitle %></p>
+
+    <form action="<%= BASE %>/auth/verify" method="POST" class="auth-form">
+      <input type="hidden" name="token" value="<%= token %>">
+      <input type="hidden" name="redirect" value="<%= redirect %>">
+      <button type="submit" class="btn btn-primary btn-full"><%= t.confirmButton %></button>
+    </form>
+  </div>
+</div>
+
+<%- include('_footer') %>
